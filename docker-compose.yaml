@@ -1,7 +1,6 @@
 version: '3.8'
 services:
   db:
-    # image: docker.arvancloud.ir/postgres:16
     image: postgres
     container_name: postgres_finnotech
     env_file:
@@ -14,6 +13,7 @@ services:
       POSTGRES_DB: 'finnotechDB'
       POSTGRES_USER: 'finnotech'
       POSTGRES_PASSWORD: 'P@ssw0rd'
+      DATABASE_URL: 'postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}?schema=public'
 
 volumes:
   finnotech:
