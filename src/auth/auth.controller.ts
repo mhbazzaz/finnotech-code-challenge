@@ -1,4 +1,11 @@
-import { Body, Controller, ParseIntPipe, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ApiBody,
@@ -57,7 +64,7 @@ export class AuthController {
     required: true,
     description: 'Verification Code That Was Mailed To User',
   })
-  @Post('verifyUser')
+  @Get('verifyUser')
   async verifyUser(
     @Query('userId', ParseIntPipe) userId: number,
     @Query('code') code: string,

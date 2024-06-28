@@ -28,12 +28,12 @@ async function bootstrap() {
   const options = new DocumentBuilder()
     .setTitle('Finnotech Code-Challenge')
     .setDescription('API Specification For Finnotech Code-Challenge')
-    .addBearerAuth()
-    .addSecurity('Authorization', {
-      type: 'apiKey',
-      in: 'header',
+    .addBearerAuth({
       name: 'Authorization',
-      description: 'Bearer {your_access_token_here}',
+      bearerFormat: 'Bearer',
+      description: 'Please enter token in the following format: Bearer <JWT>',
+      type: 'http',
+      in: 'header',
     })
     .setVersion(version)
     .build();

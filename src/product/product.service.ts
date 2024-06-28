@@ -24,7 +24,7 @@ export class ProductService {
 
       return new GetProductDto(newProduct);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Product does not created!');
     }
   }
 
@@ -33,34 +33,31 @@ export class ProductService {
     page: number,
     pageSize: number,
   ): Promise<GetAllProductsDto> {
-    try {
-      const currentPage = page ? Number(page) : 0;
-      const limit = pageSize ? Number(pageSize) : 10;
+    const currentPage = page ? Number(page) : 0;
+    const limit = pageSize ? Number(pageSize) : 10;
 
-      const [products, totalCount] = await Promise.all([
-        this.db.product.findMany({
-          orderBy: {
-            createdAt: 'asc',
-          },
-          skip: limit * currentPage,
-          take: limit,
-        }),
-        this.db.product.count(),
-      ]);
+    const [products, totalCount] = await Promise.all([
+      this.db.product.findMany({
+        orderBy: {
+          createdAt: 'asc',
+        },
+        skip: limit * currentPage,
+        take: limit,
+      }),
+      this.db.product.count(),
+    ]);
 
-      if (!products.length) throw new NotFoundException();
+    if (!products.length)
+      throw new NotFoundException('Products does not exists!');
 
-      const productsResult = products.map((product) => {
-        return new GetProductDto(product);
-      });
+    const productsResult = products.map((product) => {
+      return new GetProductDto(product);
+    });
 
-      return new GetAllProductsDto({
-        totalCount,
-        products: productsResult,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return new GetAllProductsDto({
+      totalCount,
+      products: productsResult,
+    });
   }
 
   //----------------------------------
@@ -69,35 +66,32 @@ export class ProductService {
     page: number,
     pageSize: number,
   ): Promise<GetUserProductsDto> {
-    try {
-      const currentPage = page ? Number(page) : 0;
-      const limit = pageSize ? Number(pageSize) : 10;
+    const currentPage = page ? Number(page) : 0;
+    const limit = pageSize ? Number(pageSize) : 10;
 
-      const [products, totalCount] = await Promise.all([
-        this.db.product.findMany({
-          where: { creatorId: userId },
-          orderBy: {
-            createdAt: 'asc',
-          },
-          skip: limit * currentPage,
-          take: limit,
-        }),
-        this.db.product.count({ where: { creatorId: userId } }),
-      ]);
+    const [products, totalCount] = await Promise.all([
+      this.db.product.findMany({
+        where: { creatorId: userId },
+        orderBy: {
+          createdAt: 'asc',
+        },
+        skip: limit * currentPage,
+        take: limit,
+      }),
+      this.db.product.count({ where: { creatorId: userId } }),
+    ]);
 
-      if (!products.length) throw new NotFoundException();
+    if (!products.length)
+      throw new NotFoundException('This user does not create any product!');
 
-      const productsResult = products.map((product) => {
-        return new GetProductDto(product);
-      });
+    const productsResult = products.map((product) => {
+      return new GetProductDto(product);
+    });
 
-      return new GetUserProductsDto({
-        totalCount,
-        creatorId: userId,
-        products: productsResult,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return new GetUserProductsDto({
+      totalCount,
+      creatorId: userId,
+      products: productsResult,
+    });
   }
 }

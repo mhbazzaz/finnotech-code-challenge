@@ -13,7 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDto } from './dto/request/register-user.dto';
 import { UserRegisterResponse } from './dto/response/user-register-response.dto';
 import * as uuid from 'uuid';
-import { MailerService } from 'src/mail/mail.service';
+import { MailService } from 'src/mail/mail.service';
 import { UserVerifyResponse } from './dto/response/user-verify-response.dto';
 
 @Injectable()
@@ -21,104 +21,95 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
+    private readonly mailService: MailService,
   ) {}
 
   //----------------------------------
   async signIn(data: UserSignInDto): Promise<UserSignInResponse> {
-    try {
-      const { email, password } = data;
-      const foundedUser = await this.userService.getUserByEmail(email);
+    const { email, password } = data;
+    const foundedUser = await this.userService.getUserByEmail(email);
 
-      if (!foundedUser) throw new NotFoundException();
-      if (!foundedUser.isVerified)
-        throw new ForbiddenException('User must be verified first!');
+    if (!foundedUser) throw new NotFoundException();
+    if (!foundedUser.isVerified)
+      throw new ForbiddenException('User must be verified first!');
 
-      const isMatch = await this.isPasswordMatch(
-        password,
-        foundedUser.password,
-      );
+    const isMatch = await this.isPasswordMatch(password, foundedUser.password);
 
-      if (!isMatch) throw new ForbiddenException();
+    if (!isMatch) throw new ForbiddenException('Password is incorrect!');
 
-      const accessToken = await this.generateJwtToken(
-        foundedUser.id,
-        foundedUser.email,
-      );
+    const accessToken = await this.generateJwtToken(
+      foundedUser.id,
+      foundedUser.email,
+    );
 
-      return new UserSignInResponse({
-        message: 'User has been signed-in successfully!',
-        accessToken,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return new UserSignInResponse({
+      message: 'User has been signed-in successfully!',
+      accessToken,
+    });
   }
 
   //----------------------------------
   async register(data: RegisterUserDto): Promise<UserRegisterResponse> {
-    try {
-      //check user not exists
-      const { email, password } = data;
-      const foundedUser = await this.userService.getUserByEmail(email);
+    const { email, firstName, password } = data;
+    const foundedUser = await this.userService.getUserByEmail(email);
 
-      if (foundedUser) throw new ConflictException();
+    if (foundedUser) throw new ConflictException('User is exists!');
 
-      //create user record with isVerified = false
-      const salt = +process.env.SALT_PASSWORD;
-      const verificationCode = uuid.v4();
+    //create user record with isVerified = false
+    const salt = +process.env.SALT_PASSWORD;
+    const verificationCode = uuid.v4();
 
-      const hashedPassword = await bcrypt.hash(password, salt);
-      const body = {
-        ...data,
-        password: hashedPassword,
-        verificationCode,
-        isVerified: false,
-      };
+    const hashedPassword = await bcrypt.hash(password, salt);
+    const body = {
+      ...data,
+      password: hashedPassword,
+      verificationCode,
+      isVerified: false,
+    };
 
-      const newUser = await this.userService.createUser(body);
+    const newUser = await this.userService.createUser(body);
+    const userId = newUser.id;
+    const verificationLink = `http://localhost:3010/auth/verifyUser/?userId=${userId}&code=${verificationCode}`;
 
-      //send email verification
-      const userId = newUser.id;
-      const verificationUrl = `http://localhost:3010/auth/verifyUser/?userId=${userId}&code=${verificationCode}`;
-      // await this.mailerService.sendEmail() //// send url with tracking code to click on it
+    const verificationEmail = this.mailService.sendMail(
+      email,
+      firstName,
+      verificationLink,
+    );
 
-      return new UserRegisterResponse({
-        message: 'Verification link has beed sent!',
-        verificationLink: verificationUrl,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
+    return new UserRegisterResponse({
+      message: 'Verification link has beed sent!',
+      verificationLink,
+    });
   }
 
   //----------------------------------
   async verifyUser(userId: number, code: string): Promise<UserVerifyResponse> {
-    try {
-      const foundedUser = await this.userService.getUserById(userId);
-      if (!foundedUser) throw new NotFoundException();
+    const foundedUser = await this.userService.getUserById(userId);
+    if (!foundedUser)
+      throw new NotFoundException('User must be registered first!');
 
-      let isCodeValid: boolean =
-        foundedUser.verificationCode === code && userId === foundedUser.id
-          ? true
-          : false;
+    const isCodeValid: boolean =
+      foundedUser.verificationCode === code && userId === foundedUser.id
+        ? true
+        : false;
 
-      if (!isCodeValid) {
-        throw new ForbiddenException();
-      }
-
-      const updatedUser = await this.userService.updateUserVerification(
-        foundedUser.id,
-        true,
-      );
-      const token = await this.generateJwtToken(userId, foundedUser.email);
-      return new UserVerifyResponse({
-        message: 'User has been verified successfully!',
-        accessToken: token,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException();
+    if (!isCodeValid) {
+      throw new ForbiddenException('Your verification link is incorrect!');
     }
+
+    const [updatedUser, token] = await Promise.all([
+      this.userService.updateUserVerification(foundedUser.id, true),
+      this.generateJwtToken(userId, foundedUser.email),
+    ]);
+
+    if (!updatedUser)
+      throw new InternalServerErrorException('Internal server error!');
+
+    return new UserVerifyResponse({
+      message: 'User has been verified successfully!',
+      accessToken: token,
+    });
   }
 
   //----------------------------------

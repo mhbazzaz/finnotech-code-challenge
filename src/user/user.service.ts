@@ -14,29 +14,28 @@ export class UserService {
 
   //-----------------------------
   async createUser(data: CreateUserDto): Promise<GetUserDto> {
-    try {
-      const { email, password } = data;
+    const { email, password } = data;
 
-      const isExistsUser = await this.getUserByEmail(email);
-      if (isExistsUser) {
-        throw new ConflictException();
-      }
-      const salt = +process.env.SALT_PASSWORD;
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      const body = {
-        ...data,
-        password: hashedPassword,
-      };
-
-      const newUser = await this.db.user.create({
-        data: body,
-      });
-
-      return new GetUserDto(newUser);
-    } catch (error) {
-      throw new InternalServerErrorException();
+    const isExistsUser = await this.getUserByEmail(email);
+    if (isExistsUser) {
+      throw new ConflictException('User is already exists!');
     }
+    const salt = +process.env.SALT_PASSWORD;
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const body = {
+      ...data,
+      password: hashedPassword,
+    };
+
+    const newUser = await this.db.user.create({
+      data: body,
+    });
+
+    if (!newUser)
+      throw new InternalServerErrorException('Internal server error!');
+
+    return new GetUserDto(newUser);
   }
   //-----------------------------
   async getUserByEmail(email: string): Promise<GetUserDto> {
@@ -45,7 +44,7 @@ export class UserService {
         where: { email },
       });
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Internal server error!');
     }
   }
 
@@ -58,7 +57,7 @@ export class UserService {
 
       return new GetUserDto(foundedUser);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Internal server error!');
     }
   }
 
@@ -75,7 +74,7 @@ export class UserService {
 
       return new GetUserDto(updatedUser);
     } catch (error) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException('Internal server error!');
     }
   }
 }
