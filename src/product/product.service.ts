@@ -11,17 +11,16 @@ import { GetUserProductsDto } from './dto/response/get-user-product.dto';
 
 @Injectable()
 export class ProductService {
-  constructor(
-    private readonly productService: ProductService,
-    private readonly db: PrismaService,
-  ) {}
+  constructor(private readonly db: PrismaService) {}
 
   //----------------------------------
-  async createProduct(data: CreateProductDto): Promise<GetProductDto> {
+  async createProduct(
+    userId: number,
+    data: CreateProductDto,
+  ): Promise<GetProductDto> {
     try {
-      const newProduct = await this.db.product.create({
-        data,
-      });
+      const body = { ...data, creatorId: userId };
+      const newProduct = await this.db.product.create({ data: body });
 
       return new GetProductDto(newProduct);
     } catch (error) {

@@ -11,9 +11,4 @@ export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @ApiProperty()
-  @IsNumber()
-  @IsNotEmpty()
-  creatorId: number;
 }

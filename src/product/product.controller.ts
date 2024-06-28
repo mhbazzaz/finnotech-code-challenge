@@ -11,15 +11,17 @@ import {
   Get,
   Post,
   Body,
-  Param,
   UseGuards,
   Query,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/request/create-product.dto';
 import { GetProductDto } from './dto/response/get-product.dto';
 import { GetAllProductsDto } from './dto/response/get-all-products.dto';
 import { GetUserProductsDto } from './dto/response/get-user-product.dto';
+import { Request } from 'express';
+import { AuthGuard } from 'src/auth/guards/auth-jwt.guard';
 
 @ApiTags('Product')
 @Controller('product')
@@ -34,10 +36,14 @@ export class ProductController {
     description: 'Product has been created successfully!',
     type: GetProductDto,
   })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Post()
-  async createProduct(@Body() data: CreateProductDto): Promise<GetProductDto> {
-    return await this.productService.createProduct(data);
+  async createProduct(
+    @Body() data: CreateProductDto,
+    @Req() req: Request,
+  ): Promise<GetProductDto> {
+    const userId = req['userId'];
+    return await this.productService.createProduct(userId, data);
   }
 
   //----------------------------------
@@ -49,8 +55,8 @@ export class ProductController {
     description: 'Products have been retrieved successfully!',
     type: GetAllProductsDto,
   })
-  // @UseGuards(AuthGuard)
-  @Get()
+  @UseGuards(AuthGuard)
+  @Get('all')
   async getAllProducts(
     @Query('page', ParseIntPipe) page?: number,
     @Query('pageSize', ParseIntPipe) pageSize?: number,
@@ -59,7 +65,7 @@ export class ProductController {
   }
 
   //----------------------------------
-  @ApiOperation({ summary: 'Get Products By Creator-ID' })
+  @ApiOperation({ summary: 'Get Products By Creator-ID With Paggination' })
   @ApiQuery({ name: 'page', required: true, description: 'Page Number' })
   @ApiQuery({ name: 'pageSize', required: true, description: 'Page Size' })
   @ApiResponse({
@@ -67,13 +73,14 @@ export class ProductController {
     description: 'Products has been retrieved successfully!',
     type: GetUserProductsDto,
   })
-  // @UseGuards(AuthGuard)
-  @Get(':userId')
+  @UseGuards(AuthGuard)
+  @Get('userProduct')
   async getUserProducts(
-    @Param('userId') userId: number,
+    @Req() req: Request,
     @Query('page', ParseIntPipe) page?: number,
     @Query('pageSize', ParseIntPipe) pageSize?: number,
   ): Promise<GetUserProductsDto> {
+    const userId = req['userId'];
     return await this.productService.getUserProducts(userId, page, pageSize);
   }
 }
