@@ -12,7 +12,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDto } from './dto/request/register-user.dto';
 import { UserRegisterResponse } from './dto/response/user-register-response.dto';
-import { User } from '@prisma/client';
 import * as uuid from 'uuid';
 import { MailerService } from 'src/mail/mail.service';
 import { UserVerifyResponse } from './dto/response/user-verify-response.dto';

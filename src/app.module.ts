@@ -11,6 +11,18 @@ import { JwtModule } from '@nestjs/jwt';
       isGlobal: true,
       envFilePath: './.env',
     }),
+    JwtModule.registerAsync({
+      global: true,
+      useFactory: (config: ConfigService) => {
+        return {
+          secret: config.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: config.get<string>('JWT_EXPIRE'),
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
     UserModule,
     AuthModule,
     ProductModule,
