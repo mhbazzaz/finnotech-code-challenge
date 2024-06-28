@@ -18,6 +18,12 @@ export class GetUserDto {
   password: string;
 
   @Exclude()
+  verificationCode: string;
+
+  @ApiProperty()
+  isVerified: boolean;
+
+  @Exclude()
   createdAt: Date;
 
   @Exclude()

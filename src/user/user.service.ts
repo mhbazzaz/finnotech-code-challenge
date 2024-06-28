@@ -3,45 +3,79 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { RegisterUserDto } from 'src/auth/dto/register-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { GetUserDto } from './dto/response/get-user.dto';
+import { CreateUserDto } from './dto/request/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly db: PrismaService) {}
 
   //-----------------------------
-  async createUser(data: RegisterUserDto): Promise<GetUserDto> {
-    const { firstName, lastName, email, password } = data;
+  async createUser(data: CreateUserDto): Promise<GetUserDto> {
+    try {
+      const { email, password } = data;
 
-    const isExistsUser = await this.getUserByEmail(email);
-    if (isExistsUser) {
-      throw new ConflictException();
+      const isExistsUser = await this.getUserByEmail(email);
+      if (isExistsUser) {
+        throw new ConflictException();
+      }
+      const salt = +process.env.SALT_PASSWORD;
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const body = {
+        ...data,
+        password: hashedPassword,
+      };
+
+      const newUser = await this.db.user.create({
+        data: body,
+      });
+
+      return new GetUserDto(newUser);
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
-    const salt = process.env.SALT_PASSWORD;
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const body = {
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-    };
-
-    const newUser = await this.db.user.create({
-      data: body,
-    });
-
-    if (!newUser) throw new InternalServerErrorException();
-
-    return new GetUserDto(newUser);
   }
   //-----------------------------
   async getUserByEmail(email: string): Promise<GetUserDto> {
-    return await this.db.user.findUnique({
-      where: { email },
-    });
+    try {
+      return await this.db.user.findUnique({
+        where: { email },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  //-----------------------------
+  async getUserById(id: number): Promise<GetUserDto> {
+    try {
+      const foundedUser = await this.db.user.findUnique({
+        where: { id },
+      });
+
+      return new GetUserDto(foundedUser);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  //-----------------------------
+  async updateUserVerification(
+    userId: number,
+    status: boolean,
+  ): Promise<GetUserDto> {
+    try {
+      const updatedUser = await this.db.user.update({
+        where: { id: userId },
+        data: { isVerified: status },
+      });
+
+      return new GetUserDto(updatedUser);
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }

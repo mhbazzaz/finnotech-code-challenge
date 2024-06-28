@@ -8,14 +8,18 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @unique @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  products  Product[]
+  id               Int       @id @unique @default(autoincrement())
+  firstName        String
+  lastName         String
+  email            String    @unique
+  password         String
+  verificationCode String?
+  isVerified       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  products         Product[]
+
+  @@index([email], name: "email_index")
 }
 
 model Product {
