@@ -6,13 +6,13 @@ export class GetProductDto {
   id: number;
 
   @ApiProperty()
-  firstName: string;
+  title: string;
 
   @ApiProperty()
-  lastName: string;
+  description: string;
 
   @ApiProperty()
-  email: string;
+  creatorId: number;
 
   @Exclude()
   createdAt: Date;
