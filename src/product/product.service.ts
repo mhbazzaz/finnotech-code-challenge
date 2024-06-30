@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/request/create-product.dto';
 import { GetProductDto } from './dto/response/get-product.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { GetAllProductsDto } from './dto/response/get-all-products.dto';
 import { GetUserProductsDto } from './dto/response/get-user-product.dto';
 

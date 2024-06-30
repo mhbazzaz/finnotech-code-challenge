@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 import { UserSignInDto } from './dto/request/sign-in.dto';
 import { UserSignInResponse } from './dto/response/user-sign-in-response.dto';
 import * as bcrypt from 'bcrypt';
@@ -13,7 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { RegisterUserDto } from './dto/request/register-user.dto';
 import { UserRegisterResponse } from './dto/response/user-register-response.dto';
 import * as uuid from 'uuid';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { UserVerifyResponse } from './dto/response/user-verify-response.dto';
 
 @Injectable()

@@ -21,7 +21,7 @@ import { GetProductDto } from './dto/response/get-product.dto';
 import { GetAllProductsDto } from './dto/response/get-all-products.dto';
 import { GetUserProductsDto } from './dto/response/get-user-product.dto';
 import { Request } from 'express';
-import { AuthGuard } from 'src/auth/guards/auth-jwt.guard';
+import { AuthGuard } from '../auth/guards/auth-jwt.guard';
 
 @ApiTags('Product')
 @Controller('product')
