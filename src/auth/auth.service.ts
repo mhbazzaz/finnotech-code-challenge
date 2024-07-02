@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { UserSignInDto } from './dto/request/sign-in.dto';
@@ -35,7 +36,7 @@ export class AuthService {
 
     const isMatch = await this.isPasswordMatch(password, foundedUser.password);
 
-    if (!isMatch) throw new ForbiddenException('Password is incorrect!');
+    if (!isMatch) throw new UnauthorizedException('Password is incorrect!');
 
     const accessToken = await this.generateJwtToken(
       foundedUser.id,
@@ -58,8 +59,8 @@ export class AuthService {
     //create user record with isVerified = false
     const salt = +process.env.SALT_PASSWORD;
     const verificationCode = uuid.v4();
-
     const hashedPassword = await bcrypt.hash(password, salt);
+
     const body = {
       ...data,
       password: hashedPassword,
