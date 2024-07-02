@@ -30,8 +30,8 @@ export class ProductService {
 
   //----------------------------------
   async getAllProducts(
-    page: number,
-    pageSize: number,
+    page?: number,
+    pageSize?: number,
   ): Promise<GetAllProductsDto> {
     const currentPage = page ? Number(page) : 0;
     const limit = pageSize ? Number(pageSize) : 10;
@@ -63,8 +63,8 @@ export class ProductService {
   //----------------------------------
   async getUserProducts(
     userId: number,
-    page: number,
-    pageSize: number,
+    page?: number,
+    pageSize?: number,
   ): Promise<GetUserProductsDto> {
     const currentPage = page ? Number(page) : 0;
     const limit = pageSize ? Number(pageSize) : 10;
