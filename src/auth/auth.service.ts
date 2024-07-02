@@ -29,7 +29,7 @@ export class AuthService {
     const { email, password } = data;
     const foundedUser = await this.userService.getUserByEmail(email);
 
-    if (!foundedUser) throw new NotFoundException();
+    if (!foundedUser) throw new NotFoundException('User not found!');
     if (!foundedUser.isVerified)
       throw new ForbiddenException('User must be verified first!');
 
@@ -114,8 +114,8 @@ export class AuthService {
 
   //----------------------------------
   private async isPasswordMatch(
-    dbPassword: string,
     inputPassword: string,
+    dbPassword: string,
   ): Promise<Boolean> {
     return await bcrypt.compare(inputPassword, dbPassword);
   }

@@ -11,7 +11,7 @@ export class MailService {
       from: `${process.env.MAIL_SENDER_NAME} <${process.env.MAIL_SENDER_ACCOUNT}>`,
       to: recipient,
       subject: 'Verification Link',
-      text: `Hello ${recipientName} , your verification link :\n  ${url}`,
+      html: `<p>Hello ${recipientName}</p><p>Click On Your Verification Link</p><a href = ${url}>Your Link</a>`,
     });
   }
 }
