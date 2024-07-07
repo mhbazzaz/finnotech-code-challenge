@@ -1,5 +1,6 @@
 import { ProductService } from './product.service';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiQuery,
@@ -24,6 +25,7 @@ import { Request } from 'express';
 import { AuthGuard } from '../auth/guards/auth-jwt.guard';
 
 @ApiTags('Product')
+@ApiBearerAuth()
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
